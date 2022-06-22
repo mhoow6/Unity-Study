@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
+using Cinemachine;
 
 #region PlayableDirector Summary
 /*
@@ -27,13 +28,25 @@ namespace Study.Cutscene
 {
     public class RobotKyleDirector : MonoBehaviour
     {
-        public PlayableDirector director;
+        PlayableDirector director;
         public GameObject robotKyle;
+        public CinemachineBrain brain;
+
+        public List<CinemachineVirtualCamera> cameras = new List<CinemachineVirtualCamera>();
+
         bool _fire1;
 
         private void Awake()
         {
             director = GetComponent<PlayableDirector>();
+        }
+
+        private void Start()
+        {
+            // Binding Clear
+            var timelineAsset = director.playableAsset;
+            foreach (var output in timelineAsset.outputs)
+                director.ClearGenericBinding(output.sourceObject);
         }
 
         private void Update()
@@ -45,16 +58,42 @@ namespace Study.Cutscene
                     var timelineAsset = director.playableAsset;
                     foreach (var output in timelineAsset.outputs)
                     {
+                        string bindingObjectName = string.Empty;
                         // PlayableBinding.sourceObject: PlayableBinding의 Key값
                         // 현재 트랙의 연결된 오브젝트를 robotKyle로 정한다.
-                        director.SetGenericBinding(output.sourceObject, robotKyle);
+                        switch (output.streamName)
+                        {
+                            case "Animation Track":
+                                bindingObjectName = robotKyle.name;
+                                director.SetGenericBinding(output.sourceObject, robotKyle);
+                                break;
+                            case "Transform Track":
+                                bindingObjectName = robotKyle.name;
+                                director.SetGenericBinding(output.sourceObject, robotKyle);
+                                break;
+                            case "Cinemachine Track":
+                                bindingObjectName = brain.name;
+                                director.SetGenericBinding(output.sourceObject, brain);
+                                break;
+                            default:
+                                break;
+                        }
+
                         if (director.GetGenericBinding(output.sourceObject))
-                            Debug.Log($"{output.streamName}에 {robotKyle}이 연결되었습니다.");
+                            Debug.Log($"{output.streamName}에 {bindingObjectName}이 연결되었습니다.");
                     }
                     director.Play();
                     _fire1 = true;
                 }
             }
+        }
+
+        public void Signal_0296()
+        {
+            Debug.Log("02:96초에서 호출");
+
+            cameras[1].gameObject.SetActive(true);
+            cameras[1].LookAt = robotKyle.transform;
         }
     }
 }

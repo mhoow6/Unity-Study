@@ -29,12 +29,14 @@ namespace Study.Cutscene
 {
     public class RobotKyleDirector : MonoBehaviour
     {
-        public GameObject robotKyle;
+        public RobotKyle robotKyle;
         public CinemachineBrain brain;
         public List<CinemachineVirtualCamera> cameras = new List<CinemachineVirtualCamera>();
+        public CinemachineDollyCart VCAM02cart;
 
         bool _fire1;
-        PlayableDirector director;
+        PlayableDirector _director;
+        bool[] _signalUsed = new bool[2];
 
         # region 컷신에 쓰였던 에셋 Transform 초기화용도
         AnimationPlayableAsset recorded_0000_0900;
@@ -43,18 +45,18 @@ namespace Study.Cutscene
 
         private void Awake()
         {
-            director = GetComponent<PlayableDirector>();
+            _director = GetComponent<PlayableDirector>();
         }
 
         private void Start()
         {
             // 바인딩 정보 초기화
-            var timelineAsset = director.playableAsset;
+            var timelineAsset = _director.playableAsset;
             foreach (var output in timelineAsset.outputs)
-                director.ClearGenericBinding(output.sourceObject);
+                _director.ClearGenericBinding(output.sourceObject);
 
             // 컷신 마무리시 이벤트
-            director.stopped += (director) =>
+            _director.stopped += (director) =>
             {
                 recorded_0000_0900.position = Vector3.zero;
             };
@@ -67,7 +69,7 @@ namespace Study.Cutscene
             {
                 if (!_fire1)
                 {
-                    var timelineAsset = director.playableAsset;
+                    var timelineAsset = _director.playableAsset;
                     foreach (var output in timelineAsset.outputs)
                     {
                         string bindingObjectName = string.Empty;
@@ -78,11 +80,11 @@ namespace Study.Cutscene
                         {
                             case "Animation Track":
                                 bindingObjectName = robotKyle.name;
-                                director.SetGenericBinding(output.sourceObject, robotKyle);
+                                _director.SetGenericBinding(output.sourceObject, robotKyle.gameObject);
                                 break;
                             case "Transform Track":
                                 bindingObjectName = robotKyle.name;
-                                director.SetGenericBinding(output.sourceObject, robotKyle);
+                                _director.SetGenericBinding(output.sourceObject, robotKyle.gameObject);
 
                                 // 씬에 있는 게임오브젝트에 맞춰 위치값을 조정한다.
                                 var secondTrack = output.sourceObject as AnimationTrack;
@@ -106,17 +108,17 @@ namespace Study.Cutscene
                                 break;
                             case "Cinemachine Track":
                                 bindingObjectName = brain.name;
-                                director.SetGenericBinding(output.sourceObject, brain);
+                                _director.SetGenericBinding(output.sourceObject, brain);
 
                                 break;
                             default:
                                 break;
                         }
 
-                        if (director.GetGenericBinding(output.sourceObject))
+                        if (_director.GetGenericBinding(output.sourceObject))
                             Debug.Log($"{output.streamName}에 {bindingObjectName}이 연결되었습니다.");
                     }
-                    director.Play();
+                    _director.Play();
                     _fire1 = true;
                 }
             }
@@ -124,10 +126,43 @@ namespace Study.Cutscene
 
         public void Signal_0296()
         {
+            if (_signalUsed[0])
+                Debug.LogError($"현재 시그널은 이미 사용되었습니다.");
+
             Debug.Log("02:96초에서 호출");
 
+            cameras[0].gameObject.SetActive(false);
             cameras[1].gameObject.SetActive(true);
-            cameras[1].LookAt = robotKyle.transform;
+            cameras[1].LookAt = robotKyle.head;
+
+            StartCoroutine(VCAM02FollowRobotKyle());
+
+            _signalUsed[0] = true;
+        }
+
+        IEnumerator VCAM02FollowRobotKyle()
+        {
+            Vector3 bias = robotKyle.transform.position;
+            float deltaDistance = 0f;
+            while (true)
+            {
+                deltaDistance = Vector3.Distance(bias, robotKyle.transform.position);
+                VCAM02cart.m_Position = deltaDistance;
+
+                yield return null;
+            }
+        }
+
+        public void Signal_0900()
+        {
+            if (_signalUsed[1])
+                Debug.LogError($"현재 시그널은 이미 사용되었습니다.");
+
+            Debug.Log("09:00초에서 호출");
+
+            StopAllCoroutines();
+
+            _signalUsed[1] = true;
         }
     }
 }

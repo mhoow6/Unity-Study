@@ -12,6 +12,7 @@ namespace Study.Cutscene
 
     public class RobotKyle : MonoBehaviour
     {
+        public Transform head;
     }
 }
 

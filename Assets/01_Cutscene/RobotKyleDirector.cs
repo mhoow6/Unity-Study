@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
 using Cinemachine;
+using UnityEngine.Timeline;
 
 #region PlayableDirector Summary
 /*
@@ -28,13 +29,17 @@ namespace Study.Cutscene
 {
     public class RobotKyleDirector : MonoBehaviour
     {
-        PlayableDirector director;
         public GameObject robotKyle;
         public CinemachineBrain brain;
-
         public List<CinemachineVirtualCamera> cameras = new List<CinemachineVirtualCamera>();
 
         bool _fire1;
+        PlayableDirector director;
+
+        # region 컷신에 쓰였던 에셋 Transform 초기화용도
+        AnimationPlayableAsset recorded_0000_0900;
+        #endregion
+
 
         private void Awake()
         {
@@ -43,10 +48,17 @@ namespace Study.Cutscene
 
         private void Start()
         {
-            // Binding Clear
+            // 바인딩 정보 초기화
             var timelineAsset = director.playableAsset;
             foreach (var output in timelineAsset.outputs)
                 director.ClearGenericBinding(output.sourceObject);
+
+            // 컷신 마무리시 이벤트
+            director.stopped += (director) =>
+            {
+                recorded_0000_0900.position = Vector3.zero;
+            };
+
         }
 
         private void Update()
@@ -59,6 +71,7 @@ namespace Study.Cutscene
                     foreach (var output in timelineAsset.outputs)
                     {
                         string bindingObjectName = string.Empty;
+
                         // PlayableBinding.sourceObject: PlayableBinding의 Key값
                         // 현재 트랙의 연결된 오브젝트를 robotKyle로 정한다.
                         switch (output.streamName)
@@ -70,10 +83,31 @@ namespace Study.Cutscene
                             case "Transform Track":
                                 bindingObjectName = robotKyle.name;
                                 director.SetGenericBinding(output.sourceObject, robotKyle);
+
+                                // 씬에 있는 게임오브젝트에 맞춰 위치값을 조정한다.
+                                var secondTrack = output.sourceObject as AnimationTrack;
+                                var secondTrackClips = secondTrack.GetClips();
+                                foreach (var clip in secondTrackClips)
+                                {
+                                    switch (clip.displayName)
+                                    {
+                                        case "Recorded_0000-0900":
+                                            var animationPlayableAsset = clip.asset as AnimationPlayableAsset;
+
+                                            recorded_0000_0900 = animationPlayableAsset;
+
+                                            animationPlayableAsset.position = robotKyle.transform.position;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+
                                 break;
                             case "Cinemachine Track":
                                 bindingObjectName = brain.name;
                                 director.SetGenericBinding(output.sourceObject, brain);
+
                                 break;
                             default:
                                 break;

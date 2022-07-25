@@ -13,9 +13,9 @@ namespace Mhoow6.SafeArea
             float safeArea_height_ratio = Screen.safeArea.height / Screen.height;
             float safeArea_screen_diff_ratio = Screen.safeArea.x / Screen.width;
 
-            if (spaceOverlayCanavs)
+            if (canavs)
             {
-                var canvasRectTransform = spaceOverlayCanavs.GetComponent<RectTransform>();
+                var canvasRectTransform = canavs.GetComponent<RectTransform>();
 
                 float fullscreen_width = Mathf.Floor(canvasRectTransform.sizeDelta.x);
                 float fullscreen_height = Mathf.Ceil(canvasRectTransform.sizeDelta.y);

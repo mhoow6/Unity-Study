@@ -11,7 +11,7 @@ namespace Mhoow6.SafeArea
         public bool IsInMoblieDevice;
 
         protected RectTransform rectTransform;
-        protected Canvas spaceOverlayCanavs;
+        protected Canvas canavs;
 
         protected void Awake()
         {
@@ -23,12 +23,12 @@ namespace Mhoow6.SafeArea
 
             rectTransform = GetComponent<RectTransform>();
 
-            if (TryGetScreenOverlayCanvas(out var canvas))
-                spaceOverlayCanavs = canvas;
+            if (TryGetCanvas(out var canvas))
+                canavs = canvas;
             else
             {
                 Canvas[] canvaslist = FindObjectsOfType<Canvas>();
-                spaceOverlayCanavs = canvaslist.First(canvas =>
+                canavs = canvaslist.First(canvas =>
                 {
                     if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
                         return true;
@@ -37,7 +37,7 @@ namespace Mhoow6.SafeArea
             }
         }
 
-        bool TryGetScreenOverlayCanvas(out Canvas result)
+        bool TryGetCanvas(out Canvas result)
         {
             Canvas find = null;
             result = find;

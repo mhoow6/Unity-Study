@@ -8,9 +8,9 @@ namespace Mhoow6.SafeArea
     {
         private void Start()
         {
-            if (spaceOverlayCanavs)
+            if (canavs)
             {
-                var canvasRectTransform = spaceOverlayCanavs.GetComponent<RectTransform>();
+                var canvasRectTransform = canavs.GetComponent<RectTransform>();
 
                 // 캔버스 RectTransform.sizeDelta는 디바이스의 크기에 맞춰서 알아서 늘어난다.
                 float fullscreen_width = Mathf.Floor(canvasRectTransform.sizeDelta.x);
